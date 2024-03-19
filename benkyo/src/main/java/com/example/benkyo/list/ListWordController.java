@@ -94,4 +94,15 @@ public class ListWordController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping("/list/{codeName}/get-hard-quiz")
+    public ResponseEntity<?> getHardQuiz(@PathVariable String codeName) {
+        Optional <ListWord> list = listWordRepository.findByCodeName(codeName);
+        if (list.isPresent()) {
+            return ResponseEntity.ok(new HardMode(list.get()));
+        }
+        else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }

@@ -28,7 +28,8 @@ export default function ListDetail(props) {
             "slug" : formJson.word
         }
         axios.post('/list/' + codeName + '/word', data).then((response) => {
-            setWords((prev) => [...prev, response.data]);
+            setWords(response.data.words);
+            console.log(words)
         })
         .catch((error) => {
             console.log(error);

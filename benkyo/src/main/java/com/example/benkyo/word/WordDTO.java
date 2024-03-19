@@ -42,4 +42,13 @@ public class WordDTO {
     public WordDTO.Write word() {
         return new WordDTO.Write();
     }
+
+    @NoArgsConstructor
+    @Setter
+    @Getter
+    public static class WriteV2 {
+        public String kanji;
+        public String hiragana;
+        public String meaning;
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.benkyo.quiz;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -45,7 +46,35 @@ public class QuizList {
             addedId.clear();    
             count++;
         }
+        addedId.clear();
+
+        for (WordDTO.Read word : words) {
+            String question = word.getMeaning();
+            int sttCorrect = random.nextInt(4);
+            HashMap<String, String> answer = new HashMap<>();
+            for (int i = 0; i< 4;i++) {
+                String key = "answer_" + i;
+                String value;
+                if (i == sttCorrect) {
+                    value = word.getHiragana();
+                }
+                else {
+                    int stt = random.nextInt(words.size());
+                    while (stt == count || addedId.contains(stt)) {
+                        stt = random.nextInt(words.size());
+                    }
+                    value = words.get(stt).getHiragana();
+                    addedId.add(stt);
+                }
+                answer.put(key, value);
+            }
+            res.add(new Quiz(question, answer, "answer_" + sttCorrect));
+            addedId.clear();    
+            count++;
+        }
+        Collections.shuffle(res);
         this.quizzes = res;
+
     }
 
     public List<Quiz> getQuizzes() {

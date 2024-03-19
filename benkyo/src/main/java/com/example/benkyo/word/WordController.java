@@ -112,4 +112,14 @@ public class WordController {
         }
         return ResponseEntity.ok(new WordDTO.Read(wordFind.get()));
     }
+
+    @PostMapping("v2/word")
+    public ResponseEntity<?> createWordV2(@Valid @RequestBody WordDTO.WriteV2 word, BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(result.getAllErrors());
+        }
+        Word newWord = new Word(word.getKanji(), word.getKanji(), word.getHiragana(), word.getMeaning());
+        wordRepository.insert(newWord);
+        return ResponseEntity.ok(new WordDTO.Read(newWord));
+    }
 } 

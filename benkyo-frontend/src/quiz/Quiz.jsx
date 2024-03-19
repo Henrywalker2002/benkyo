@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import questions from "./questions";
-import "./styles.css";
+import getQuestion from "./question";
+import "./style.css";
+import axios from "../api/axios";
+import { useParams } from "react-router-dom";
 
 function shuffle(array) {
   const shuffledArray = [...array];
@@ -11,70 +13,101 @@ function shuffle(array) {
   return shuffledArray;
 }
 
-export default function App() {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [questionText, setQuestionText] = useState("");
-  const [choices, setChoices] = useState([]);
-  const [correctAnswer, setCorrectAnswer] = useState(null);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [showNextButton, setShowNextButton] = useState(false);
+export default function Quiz() {
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [score, setScore] = useState(0);
+    const [questionText, setQuestionText] = useState("");
+    const [choices, setChoices] = useState([]);
+    const [correctAnswer, setCorrectAnswer] = useState(null);
+    const [selectedAnswer, setSelectedAnswer] = useState(null);
+    const [showNextButton, setShowNextButton] = useState(false);
+    const [questions, setQuestions] = useState([]);
+    const {codename} = useParams();
+    const [showCorrect, setShowCorrect] = useState(false);
 
-  const startQuiz = () => {
-    setCurrentQuestionIndex(0);
-    setScore(0);
-    setShowNextButton(false);
-    showQuestion(0);
-  };
+    useEffect(() => {
+        axios.get('/list/' + codename + '/get-quiz').then((response) => {
+            console.log(response.data.quizzes)
+            setQuestions(getQuestion(response.data.quizzes));
 
-  const showQuestion = (index) => {
-    resetState();
-    let currentQuestion = questions[index];
-    let questionNumber = index + 1;
-    setQuestionText(`${questionNumber}. ${currentQuestion.question}`);
-    const shuffledChoices = shuffle(currentQuestion.choices);
-    setChoices(shuffledChoices);
-    setCorrectAnswer(currentQuestion.choices.findIndex((choice) => choice.answer === true));
-  };  
+            startQuiz();
 
-  const resetState = () => {
-    setChoices([]);
-    setCorrectAnswer(null);
-    setSelectedAnswer(null);
-  };
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+    }, []);
+    
+    useEffect(() => {
+        startQuiz();
+        console.log("start");
+    }, [questions]);
 
-  const selectChoice = (isCorrect, index) => {
-    if (isCorrect) {
-      setScore(score + 1);
-    }
+    const startQuiz = () => {
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setShowNextButton(false);
+        showQuestion(0);
+    };
 
-    setSelectedAnswer(index);
-    setShowNextButton(true);
-  };
+    const showQuestion = (index) => {
+        resetState();
+        let currentQuestion = questions[index];
+        if (!currentQuestion) {
+            return;
+        }
+        let questionNumber = index + 1;
+        setQuestionText(`${questionNumber}. ${currentQuestion.question}`);
+        const shuffledChoices = shuffle(currentQuestion.choices);
+        setChoices(shuffledChoices);
+        var index = shuffledChoices.findIndex((choice) => choice.answer === true);
+        console.log(index)
+        setCorrectAnswer(index);
+        setShowCorrect(false);
+    };  
 
-  const handleNextButton = () => {
-    setShowNextButton(false);
-    setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+    const resetState = () => {
+        setChoices([]);
+        setCorrectAnswer(null);
+        setSelectedAnswer(null);
+    };
 
-    if (currentQuestionIndex < questions.length - 1) {
-      showQuestion(currentQuestionIndex + 1);
-    } else {
-      // If it's the last question, show the score
-      showScore();
-    }
-  };
+    const selectChoice = (isCorrect, index) => {
+        if (isCorrect) {
+            setScore(score + 1);
+        }
+        console.log(choices[correctAnswer]);
 
-  const showScore = () => {
-    resetState();
-    setQuestionText(`You scored ${score} out of ${questions.length}!`);
-  };
+        setSelectedAnswer(index);
+        setShowNextButton(true);
+        setShowNextButton(true);
+        console.log(showNextButton)
+        setShowCorrect(true);
+    };
 
-  useEffect(() => {
-    startQuiz();
-  }, []);
+    useEffect(() => {
+        console.log(showNextButton);
+    }, [showNextButton]);
+
+    const handleNextButton = () => {
+        setShowNextButton(false);
+        setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+
+        if (currentQuestionIndex < questions.length - 1) {
+        showQuestion(currentQuestionIndex + 1);
+        } else {
+        // If it's the last question, show the score
+        showScore();
+        }
+    };
+
+    const showScore = () => {
+        resetState();
+        setQuestionText(`You scored ${score} out of ${questions.length}!`);
+    };
 
   return (
-    <div className="app">
+    <div>
       <h1>Simple Quiz</h1>
       <div className="quiz">
         <h2 id="question">{questionText}</h2>
@@ -96,6 +129,7 @@ export default function App() {
             Next
           </button>
         )}
+        { showCorrect && <span>correct answer {choices[correctAnswer].text}</span>}
       </div>
     </div>
   );
